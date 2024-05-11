@@ -57,7 +57,6 @@ class App(CTk):
 
         if not self.relay_connected:
             self.label2.configure(text_color="red")
-            print("Label2 red")
 
             for button in self.led_buttons:
                 button.configure(state="disabled")
