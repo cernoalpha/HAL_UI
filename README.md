@@ -1,1 +1,2 @@
-Make Sure Python is installed and simply run the run_project.bat file
+
+pip install -r requirements.txt
