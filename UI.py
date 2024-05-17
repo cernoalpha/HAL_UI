@@ -1,8 +1,6 @@
-# UI.py
 from customtkinter import CTk, CTkFrame, CTkLabel, CTkButton, CTkFont
 from relay_control import BitBangDevice, relay_on, relay_off
 from functools import partial
-
 
 class App(CTk):
     def __init__(self):
@@ -18,7 +16,7 @@ class App(CTk):
         frame3_height = int(screen_height * 0.8)
 
         try:
-            self.bb = BitBangDevice('AC00LH65')
+            self.bb = BitBangDevice('AQ03B4M5')
             self.bb.direction = 0x0F
             self.relay_connected = True
         except Exception as e:
@@ -56,7 +54,6 @@ class App(CTk):
         self.frame3 = CTkFrame(self, width=frame3_width, height=frame3_height, bg_color="gray16", corner_radius=15)
         self.frame3.grid(row=0, column=2, padx=20, pady=(50, 20), sticky="nsew")
 
-
         self.led_states = [False, False, False]
 
         self.frame4 = CTkFrame(self.frame0, bg_color="gray18", corner_radius=15)
@@ -70,13 +67,12 @@ class App(CTk):
 
         if not self.relay_connected:
             self.label2.configure(text_color="red")
-
             for button in self.led_buttons:
                 button.configure(state="disabled")
         else:
             self.label2.configure(text_color="white")
             for button in self.led_buttons:
-                button.config(state="normal")
+                button.configure(state="normal")
 
     def capture_event(self):
         print("Capture button clicked")
@@ -97,8 +93,6 @@ class App(CTk):
             self.led_buttons[index - 1].configure(fg_color='red', hover_color='red')
             relay_off(index, self.bb)
 
-
 if __name__ == "__main__":
     app = App()
     app.mainloop()
-
