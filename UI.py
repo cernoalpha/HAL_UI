@@ -1,6 +1,6 @@
 import threading
 import time
-from customtkinter import CTk, CTkFrame, CTkLabel, CTkButton, CTkFont, CTkImage,CTkInputDialog,CTkCanvas
+from customtkinter import CTk, CTkFrame, CTkLabel, CTkButton, CTkFont, CTkImage,CTkInputDialog,CTkCanvas 
 from Message_Box import CustomMessageBox
 from relay_control import BitBangDevice, relay_on, relay_off
 from PIL import Image,ImageTk
@@ -36,7 +36,7 @@ class App(CTk):
         self.capture_1 = False
         self.capture_2 = False
         self.testing = False
-
+        self.live_feed_on = False
 
         # Initialize frames and UI elements
         self.frame0 = CTkFrame(self, width=320, height=screen_height, fg_color="#484b6a", corner_radius=15)
@@ -69,8 +69,11 @@ class App(CTk):
         self.frame3 = CTkFrame(self, width=frame3_width, height=frame3_height, fg_color="#d2d3db", corner_radius=15)
         self.frame3.grid(row=0, column=2, padx=20, pady=(50, 20), sticky="nsew")
 
-        self.canvas = CTkCanvas(self.frame3, width=frame3_width, height=frame3_height)
+        self.canvas = CTkCanvas(self.frame3, width=frame3_width/2, height=frame3_height)
         self.canvas.grid(row=0, column=0, sticky="nsew")
+
+        self.canvas2 = CTkFrame(self.frame3, width=frame3_width/2, height=frame3_height)
+        self.canvas2.grid(row=0, column=1, sticky="nsew")
 
         self.led_states = [False, False, False]
 
@@ -122,6 +125,7 @@ class App(CTk):
 
 ## Buttons Events and Functions
 
+## Image Capture Functionality
     def capture_event(self, name=None, reference=None):
         if(self.start_testing):
             self.capture_1 != self.capture_2
@@ -157,13 +161,32 @@ class App(CTk):
             print("Error: Unable to capture image.")
         cap.release()
 
-
+## Video Capture Functionality
     def live_event(self):
+        if self.live_feed_on:
+            self.button2.configure(fg_color="#1434A4")
+            self.stop_live_feed()
+            
+        else:
+            self.button2.configure(fg_color="green")
+            self.start_live_feed()
+
+    def start_live_feed(self):
         if self.camera_connected:
+            self.live_feed_on = True
             self.camera_feed = cv2.VideoCapture(0)
             self.show_frame()
 
+    def stop_live_feed(self):
+        if self.camera_connected:
+            self.live_feed_on = False
+            self.camera_feed.release()
+            self.canvas.delete("all")
+
     def show_frame(self):
+        if not self.live_feed_on:
+            return
+
         ret, frame = self.camera_feed.read()
         if ret:
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -174,11 +197,9 @@ class App(CTk):
 
         if self.camera_connected:
             self.after(10, self.show_frame)
-        else:
-            self.camera_feed.release()
 
 
-
+## Testing Prcedure Call
     def start_testing(self):
         if not self.relay_connected and not self.camera_connected:
             self.show_message_box("Cannot start testing, devices are offline")
@@ -186,10 +207,9 @@ class App(CTk):
             self.testing = True
             self.capture_1 = False
             self.capture_2 = False
-            self.button1.configure(fg_color="darkorange")
 
             self.show_message_box("Click on Capture Button to take reference image (Highlighted in Orange)")
-            self.button1.configure(state="normal", command=self.capture_event_for_reference)
+            self.button1.configure(state="normal", command=self.capture_event_for_reference, fg_color="darkorange")
 
     def capture_event_for_reference(self):
         self.capture_event(name="1", reference="Reference")
@@ -223,9 +243,10 @@ class App(CTk):
                 
                     
         self.start_testing = False
-        self.button1.configure(command=self.capture_event) 
-        self.button1.configure(fg_color="#1434A4")
+        self.button1.configure(command=self.capture_event, fg_color="#1434A4") 
+        self.display_image("Images/visualization_result.jpg","Result")
 
+## Helper Functions
 
     def is_float(self, value):
         try:
@@ -242,25 +263,20 @@ class App(CTk):
 
         try:
             image = Image.open(image_path)
-            image = image.resize((frame3_width, frame3_height))
-            ctk_image = CTkImage(light_image=image, size=(frame3_width, frame3_height))
+            new_width = int(frame3_width / 2)
+            new_height = int(frame3_height)
+            image = image.resize((new_width, new_height))
+        
+            ctk_image = CTkImage(light_image=image, size=(new_width, new_height))
 
-            self.image_label = CTkLabel(self.frame3, image=ctk_image)
+            self.image_label = CTkLabel(self.canvas2, image=ctk_image)
             self.image_label.grid(row=0, column=0, sticky="nsew")
             self.image_label.configure(text=label)
         except Exception as e:
             print("Error displaying image:", e)
 
-    def led_event(self, index):
-        print(f"LED{index} button clicked")
-        self.led_states[index - 1] = not self.led_states[index - 1]
-        if self.led_states[index - 1]:
-            self.led_buttons[index - 1].configure(fg_color='green', hover_color='green')
-            relay_on(3, self.bb)
-        else:
-            self.led_buttons[index - 1].configure(fg_color="darkred", hover_color="darkred")
-            relay_off(3, self.bb)
 
+## Threads and Monitoring
     def monitor_camera(self):
         while True:
             camera_status = self.check_camera_connection()
@@ -281,6 +297,16 @@ class App(CTk):
              self.button1.configure(state="disabled")
              self.button2.configure(state="disabled")
 
+# Actual camera logic to be placed
+    def check_camera_connection(self):
+        cap = cv2.VideoCapture(0)
+        if not cap.isOpened():
+            cap.release()
+            return False
+        else:
+            cap.release()
+            return True
+        
     def monitor_bitbang_device(self):
         while True:
             try:
@@ -298,15 +324,15 @@ class App(CTk):
 
             time.sleep(5)
 
-    def check_camera_connection(self):
-        cap = cv2.VideoCapture(0)
-        if not cap.isOpened():
-            cap.release()
-            return False
+    def led_event(self, index):
+        print(f"LED{index} button clicked")
+        self.led_states[index - 1] = not self.led_states[index - 1]
+        if self.led_states[index - 1]:
+            self.led_buttons[index - 1].configure(fg_color='green', hover_color='green')
+            relay_on(3, self.bb)
         else:
-            cap.release()
-            return True
-
+            self.led_buttons[index - 1].configure(fg_color="darkred", hover_color="darkred")
+            relay_off(3, self.bb)
 
     def update_led_buttons_state(self):
         state = "normal" if self.relay_connected else "disabled"
