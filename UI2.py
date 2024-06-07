@@ -186,7 +186,6 @@ class App(CTk):
             self.testing = True
             self.capture_1 = False
             self.capture_2 = False
-            self.button1.configure(fg_color="darkorange")
 
             self.show_message_box("Click on Capture Button to take reference image (Highlighted in Orange)")
             self.button1.configure(state="normal", command=self.capture_event_for_reference)
@@ -224,7 +223,6 @@ class App(CTk):
                     
         self.start_testing = False
         self.button1.configure(command=self.capture_event) 
-        self.button1.configure(fg_color="#1434A4")
 
 
     def is_float(self, value):

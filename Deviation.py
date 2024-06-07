@@ -58,9 +58,9 @@ def visualize_results(image1, image2, matched_pairs_ref, matched_pairs_test, sav
         cv2.destroyAllWindows()
 
     return combined_image
-def main():
-    image1 = cv2.imread("1.jpeg")
-    image2 = cv2.imread("2.jpeg")
+def main(angular_resolution):
+    image1 = cv2.imread("Images/1.jpg")
+    image2 = cv2.imread("Images/2.jpg")
 
     dots_image1 = detect_dots(image1)
     dots_image2 = detect_dots(image2)
@@ -73,11 +73,11 @@ def main():
     deviation_data = {}
     for i, deviation in enumerate(deviations):
         deviation_data[i + 1] = deviation
-        # print(f"Deviation for dot pair {i + 1}: {deviation:.6f} pixels")
+        print(f"Deviation for dot pair {i + 1}: {deviation:.6f} pixels")
 
 
     deviation_pixels = calculate_average(deviation_data) 
-    angular_resolution_deg_per_pixel = 0.1  # Example angular resolution in degrees per pixel
+    angular_resolution_deg_per_pixel = angular_resolution 
     deviation_arcmin = pixels_to_arcmin(deviation_pixels, angular_resolution_deg_per_pixel)
     return deviation_arcmin
 
