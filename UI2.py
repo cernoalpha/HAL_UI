@@ -336,7 +336,7 @@ class App(CTk):
                 self.bb.direction = 0x0F
                 new_relay_connected = True
             except Exception as e:
-                # print("Error:", e)
+                print("Error:", e)
                 new_relay_connected = False
 
             if new_relay_connected != self.relay_connected:
