@@ -2,6 +2,9 @@
 
 pip install -r requirements.txt
 
-source myenv/bin/activate for mac
+install sdk 
+https://drive.google.com/file/d/1GBSUljgd4BcXgQk32spKQ-wriNrjwpKH/view?pli=1
 
-python3 UI.py  
+pip install spinnaker_python-2.4.0.144-cp38-cp38-win_amd64.whl
+
+python UI.py  
