@@ -116,6 +116,7 @@ class App(CTk):
             self.camera_connected = True
         else:
             self.cam = None
+            self.camera_connected = False
 
 ## Initial State  Relay and Camera
 
@@ -326,7 +327,16 @@ class App(CTk):
 
 # Actual camera logic to be placed
     def check_camera_connection(self):
-        return self.cam is not None
+        # return self.cam is not None
+        self.system = System.GetInstance()
+        self.cam_list = self.system.GetCameras()
+        if self.cam_list.GetSize() > 0:
+            self.cam = self.cam_list[0]
+            self.cam.Init()
+            self.camera_connected = True
+        else:
+            self.cam = None
+            self.camera_connected = False
 
         
     def monitor_bitbang_device(self):
@@ -351,10 +361,10 @@ class App(CTk):
         self.led_states[index - 1] = not self.led_states[index - 1]
         if self.led_states[index - 1]:
             self.led_buttons[index - 1].configure(fg_color='green', hover_color='green')
-            relay_on(3, self.bb)
+            relay_on(index, self.bb)
         else:
             self.led_buttons[index - 1].configure(fg_color="darkred", hover_color="darkred")
-            relay_off(3, self.bb)
+            relay_off(index, self.bb)
 
     def update_led_buttons_state(self):
         state = "normal" if self.relay_connected else "disabled"

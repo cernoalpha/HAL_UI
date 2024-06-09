@@ -329,10 +329,10 @@ class App(CTk):
         self.led_states[index - 1] = not self.led_states[index - 1]
         if self.led_states[index - 1]:
             self.led_buttons[index - 1].configure(fg_color='green', hover_color='green')
-            relay_on(3, self.bb)
+            relay_on(index, self.bb)
         else:
             self.led_buttons[index - 1].configure(fg_color="darkred", hover_color="darkred")
-            relay_off(3, self.bb)
+            relay_off(index, self.bb)
 
     def update_led_buttons_state(self):
         state = "normal" if self.relay_connected else "disabled"
