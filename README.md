@@ -26,3 +26,6 @@ https://www.intra2net.com/en/developer/libftdi/download.php
 https://chatgpt.com/share/1e8e087a-e481-44e4-b22f-52374011df7b
 
 --https://libusb.info
+
+
+https://github.com/lipro/libftdi?tab=readme-ov-file
