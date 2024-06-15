@@ -1,11 +1,10 @@
-import customtkinter as ctk
+from customtkinter import CTkToplevel, CTkButton, CTkFrame, CTkLabel, CTkFont
 from pylibftdi import BitBangDevice
 
 # Relay control commands
 relay_on_cmds = [0x42, 0x08, 0x20, 0xe2, 0xA6]
 relay_off_cmds = [0xFE, 0xFD, 0xFB, 0xF7]
 
-# Functions to control relays
 def relay_on(rel_num, bbobj):
     bbobj.port |= relay_on_cmds[rel_num - 1]
     print(f"Relay {rel_num} ON Command {relay_on_cmds[rel_num - 1]:#04x}: port = {bbobj.port:#04x}")
@@ -18,29 +17,38 @@ def relay_off_all(bbobj):
     bbobj.port = 0x00
     print(f"All Relays OFF: port = {bbobj.port:#04x}")
 
-# RelayController class
-class RelayController(ctk.CTk):
+
+class RelayController(CTkToplevel):
     def __init__(self):
         super().__init__()
 
         self.title("Relay Control")
-        self.geometry("800x200")
-        
-        self.bb = BitBangDevice('AQ02JEVF')
-        self.bb.direction = 0xFF
-        self.led_states = [False] * 4  # Initialize all relays to OFF state
+        self.geometry("700x500")
+
+        try:
+            self.bb = BitBangDevice('AQ02JEVF')
+            self.bb.direction = 0xFF
+        except Exception as e:
+            print("Error: ", e)
+
+        self.led_states = [False] * 4  
         self.led_buttons = []
-        
-        # Create and place buttons
+
+        center_frame = CTkFrame(self)
+        center_frame.place(relx=0.5, rely=0.5, anchor='center')
+
+        self.label = CTkLabel(center_frame, text="LED Control", font=CTkFont(size=20, weight="bold"))
+        self.label.grid(row=0, column=0, columnspan=2, pady=10)
+
         for i in range(1, 5):
-            button = ctk.CTkButton(self, text=f"LED {i}", command=lambda i=i: self.led_event(i))
-            button.grid(row=0, column=i-1, padx=10, pady=10)
+            button_text = f"LED {i}" if i != 4 else "1 and 3"
+            button = CTkButton(center_frame, text=button_text, command=lambda i=i: self.led_event(i), width=250, height=70, font=CTkFont(size=18, weight="bold"))
+            button.grid(row=i, column=0, padx=10, pady=10, sticky="nsew")
             self.led_buttons.append(button)
-        
-        # Button to turn off all relays
-        all_off_button = ctk.CTkButton(self, text="All Off", command=self.turn_off_all_relays)
-        all_off_button.grid(row=1, column=0, columnspan=4, pady=10)
-        
+
+        all_off_button = CTkButton(center_frame, text="All Off", command=self.turn_off_all_relays, width=250, height=70, font=CTkFont(size=18, weight="bold"))
+        all_off_button.grid(row=1, column=1, rowspan=4, padx=10, pady=10, sticky="nsew")
+
     def led_event(self, index):
         print(f"LED{index} button clicked")
         self.led_states[index - 1] = not self.led_states[index - 1]
@@ -57,7 +65,3 @@ class RelayController(ctk.CTk):
             self.led_states[i] = False
             self.led_buttons[i].configure(fg_color="darkred", hover_color="darkred")
 
-# Main function
-if __name__ == "__main__":
-    app = RelayController()
-    app.mainloop()

@@ -10,8 +10,6 @@ import Deviation
 import cv2
 import os
 from datetime import datetime
-from PySpin import System
-
 
 
 
@@ -24,6 +22,9 @@ class App(CTk):
         super().__init__()
 
         self.title("HAL")
+        self.geometry("1080x720")
+        self.configure(fg_color=("#9394a5", "#9394a5"))
+
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
         frame3_width = int(screen_width * 0.75)
@@ -104,17 +105,6 @@ class App(CTk):
         self.bitbang_thread.daemon = True
         self.bitbang_thread.start()
 
-        # Initialize Spinnaker SDK camera system
-        self.system = System.GetInstance()
-        self.cam_list = self.system.GetCameras()
-        if self.cam_list.GetSize() > 0:
-            self.cam = self.cam_list[0]
-            self.cam.Init()
-            self.camera_connected = True
-        else:
-            self.cam = None
-            self.camera_connected = False
-
 ## Initial State  Relay and Camera
 
         if not self.relay_connected:
@@ -160,24 +150,16 @@ class App(CTk):
         self.capture_flag = True
 
     def save_image(self, image_path):
-        if not self.cam:
-            print("Error: No camera connected.")
+        cap = cv2.VideoCapture(0)
+        if not cap.isOpened():
+            print("Error: Unable to open camera.")
             return
-
-        self.cam.BeginAcquisition()
-        image_result = self.cam.GetNextImage()
-
-        if image_result.IsIncomplete():
-            print("Image incomplete with image status %d..." % image_result.GetImageStatus())
-            return
-
-        image_data = image_result.GetNDArray()
-        image_result.Release()
-        self.cam.EndAcquisition()
-
-        image = Image.fromarray(image_data)
-        image.save(image_path)
-
+        ret, frame = cap.read()
+        if ret:
+            cv2.imwrite(image_path, frame)
+        else:
+            print("Error: Unable to capture image.")
+        cap.release()
 
 ## Video Capture Functionality
     def live_event(self):
@@ -192,33 +174,26 @@ class App(CTk):
     def start_live_feed(self):
         if self.camera_connected:
             self.live_feed_on = True
+            self.camera_feed = cv2.VideoCapture(0)
             self.show_frame()
 
     def stop_live_feed(self):
         if self.camera_connected:
             self.live_feed_on = False
+            self.camera_feed.release()
             self.canvas.delete("all")
 
     def show_frame(self):
         if not self.live_feed_on:
             return
 
-        self.cam.BeginAcquisition()
-        image_result = self.cam.GetNextImage()
-
-        if image_result.IsIncomplete():
-            print("Image incomplete with image status %d..." % image_result.GetImageStatus())
-            return
-
-        image_data = image_result.GetNDArray()
-        image_result.Release()
-        self.cam.EndAcquisition()
-
-        frame = cv2.cvtColor(image_data, cv2.COLOR_BayerRG2RGB)
-        img = Image.fromarray(frame)
-        imgtk = ImageTk.PhotoImage(image=img)
-        self.canvas.create_image(0, 0, anchor="nw", image=imgtk)
-        self.canvas.image = imgtk
+        ret, frame = self.camera_feed.read()
+        if ret:
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            img = Image.fromarray(frame)
+            imgtk = ImageTk.PhotoImage(image=img)
+            self.canvas.create_image(0, 0, anchor="nw", image=imgtk)
+            self.canvas.image = imgtk
 
         if self.camera_connected:
             self.after(10, self.show_frame)
@@ -324,17 +299,13 @@ class App(CTk):
 
 # Actual camera logic to be placed
     def check_camera_connection(self):
-        # return self.cam is not None
-        self.system = System.GetInstance()
-        self.cam_list = self.system.GetCameras()
-        if self.cam_list.GetSize() > 0:
-            self.cam = self.cam_list[0]
-            self.cam.Init()
-            self.camera_connected = True
+        cap = cv2.VideoCapture(0)
+        if not cap.isOpened():
+            cap.release()
+            return False
         else:
-            self.cam = None
-            self.camera_connected = False
-
+            cap.release()
+            return True
         
     def monitor_bitbang_device(self):
         while True:

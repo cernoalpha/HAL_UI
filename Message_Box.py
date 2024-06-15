@@ -14,9 +14,9 @@ class CustomMessageBox(CTkToplevel):
 
         textbox = CTkTextbox(self, font=CTkFont(size=16, weight="bold"), width=460, height=190, wrap='word', state="disabled", border_spacing=30)
         textbox.pack(padx=20, pady=20)
-        textbox.configure(state="normal")  # Temporarily make it editable to insert text
+        textbox.configure(state="normal")  
         textbox.insert("1.0", message)
-        textbox.configure(state="disabled")  # Make it non-editable again
+        textbox.configure(state="disabled")  
 
         button = CTkButton(self, text="OK", command=self.destroy)
         button.pack(pady=10)
