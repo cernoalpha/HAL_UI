@@ -10,7 +10,7 @@ import Deviation
 import cv2
 import os
 from datetime import datetime
-from PySpin import System, CaptureThreading, SystemGetInstance
+from PySpin import System
 
 
 
@@ -24,9 +24,6 @@ class App(CTk):
         super().__init__()
 
         self.title("HAL")
-        self.geometry("1080x720")
-        self.configure(fg_color=("#9394a5", "#9394a5"))
-
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
         frame3_width = int(screen_width * 0.75)

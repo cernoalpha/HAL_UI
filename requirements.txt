@@ -12,7 +12,6 @@ packaging==24.0
 pillow==10.3.0
 pylibftdi==0.22.0
 pyparsing==3.1.2
-pyspin==1.1.1
 python-dateutil==2.9.0.post0
 scipy==1.13.0
 six==1.16.0
